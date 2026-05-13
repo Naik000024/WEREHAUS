@@ -17,7 +17,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--3+9^jc-zw@uuo^^-b^_q
 
 DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = ['192.168.1.15', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.1.15', '192.168.137.86', 'localhost', '127.0.0.1']
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -130,7 +130,7 @@ SIMPLE_JWT = {
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': True,
-    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_ACTIVATION_EMAIL': False,
     'ACTIVATION_URL': 'activate/{uid}/{token}',
     'SERIALIZERS': {
         'user_create': 'user.serializers.UserCreateSerializer',
