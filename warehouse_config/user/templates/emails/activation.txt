@@ -1,0 +1,6 @@
+Hello {{ user.email }},
+
+Please click the link below to activate your account:
+http://localhost:3000/activate/{{ uid }}/{{ token }}
+
+If you didn't request this, ignore this email.

@@ -1,0 +1,32 @@
+services:
+  # Backend Service
+  - type: web
+    name: warehouse-backend
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn warehouse_config.wsgi:application --chdir warehouse_config
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: warehouse-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
+
+  # Frontend Service (Static Site)
+  - type: web
+    name: warehouse-frontend
+    env: static
+    buildCommand: cd warehouse_config/frontend && npm install && npm run build
+    publishPath: warehouse_config/frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        fromContext: warehouse-backend
+        property: url
+
+databases:
+  - name: warehouse-db
+    databaseName: warehouse_db
+    user: warehouse_user
