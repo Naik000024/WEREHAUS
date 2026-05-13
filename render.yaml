@@ -16,10 +16,11 @@ services:
         value: 4
 
   # Frontend Service (Static Site)
-  - type: static_site
+  - type: web
     name: warehouse-frontend
+    env: static
     buildCommand: cd warehouse_config/frontend && npm install && npm run build
-    publishPath: warehouse_config/frontend/build
+    staticPublishPath: warehouse_config/frontend/build
     envVars:
       - key: REACT_APP_API_URL
         fromService:
