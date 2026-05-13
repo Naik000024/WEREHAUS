@@ -8,9 +8,7 @@ services:
     plan: free
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: warehouse-db
-          property: connectionString
+        sync: false # You will enter your Supabase URL in the Render Dashboard
       - key: SECRET_KEY
         generateValue: true
       - key: WEB_CONCURRENCY
@@ -28,9 +26,3 @@ services:
           name: warehouse-backend
           type: web
           property: host
-
-databases:
-  - name: warehouse-db
-    plan: free
-    databaseName: warehouse_db
-    user: warehouse_user
