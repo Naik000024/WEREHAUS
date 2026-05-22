@@ -4,14 +4,35 @@ import { Order } from '../types';
 
 interface Props { onAction: () => void; }
 
+import axios from 'axios';
+
 const OrderManifest: React.FC<Props> = ({ onAction }) => {
     const [orders, setOrders] = useState<Order[]>([]);
+    const [isAdminOrStaff, setIsAdminOrStaff] = useState(false);
 
     const fetchOrders = () => {
         getorders().then(setOrders);
     };
 
+    const fetchProfile = async () => {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/user/auth/users/me/', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (response.data.is_admin || response.data.is_staff) {
+                setIsAdminOrStaff(true);
+            }
+        } catch (error) {
+            console.error("Session Expired or Unauthorized in OrderManifest", error);
+        }
+    };
+
     useEffect(() => {
+        fetchProfile();
         fetchOrders();
     }, []);
 
@@ -67,18 +88,24 @@ const OrderManifest: React.FC<Props> = ({ onAction }) => {
                             <td className="p-4 text-right">
                                 {o.status !== 'SHIPPED' && (
                                     <div className="flex justify-end gap-2">
-                                        <button 
-                                            onClick={() => handleFulfill(o.id!)}
-                                            className="border border-neon-cyan text-neon-cyan px-4 py-1 hover:bg-neon-cyan hover:text-black font-black transition-all shadow-sm hover:shadow-neon-cyan/50"
-                                        >
-                                            EXECUTE_SHIPMENT
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDeleteOrder(o.id!)}
-                                            className="border border-red-500/50 text-red-500 px-3 py-1 hover:bg-red-500 hover:text-white font-black transition-all"
-                                        >
-                                            [ PURGE_RECORD ]
-                                        </button>
+                                        {isAdminOrStaff ? (
+                                            <>
+                                                <button 
+                                                    onClick={() => handleFulfill(o.id!)}
+                                                    className="border border-neon-cyan text-neon-cyan px-4 py-1 hover:bg-neon-cyan hover:text-black font-black transition-all shadow-sm hover:shadow-neon-cyan/50 text-[9px]"
+                                                >
+                                                    EXECUTE_SHIPMENT
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteOrder(o.id!)}
+                                                    className="border border-red-500/50 text-red-500 px-3 py-1 hover:bg-red-500 hover:text-white font-black transition-all text-[9px]"
+                                                >
+                                                    [ PURGE_RECORD ]
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <span className="text-gray-600 italic py-1">[ UNAUTHORIZED ]</span>
+                                        )}
                                     </div>
                                 )}
                             </td>

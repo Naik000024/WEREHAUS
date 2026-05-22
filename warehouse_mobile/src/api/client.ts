@@ -108,3 +108,18 @@ export const getFulfillmentReport = async (): Promise<any> => {
     const response = await API.get("api/reports/dashboard/");
     return response.data;
 };
+
+// --- CHATBOT & PROFILE EXTRA ---
+export const chatbotQuery = async (message: string): Promise<any> => {
+    const response = await API.post("api/chatbot/", { message });
+    return response.data;
+};
+
+export const updateAvatar = async (formData: FormData): Promise<any> => {
+    const response = await API.patch("user/auth/users/me/", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data"
+        }
+    });
+    return response.data;
+};

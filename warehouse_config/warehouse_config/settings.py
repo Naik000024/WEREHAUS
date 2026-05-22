@@ -129,8 +129,8 @@ SIMPLE_JWT = {
 # Djoser Configuration (Updated for Activation)
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    'USER_CREATE_PASSWORD_RETYPE': True,
-    'SEND_ACTIVATION_EMAIL': False,
+    'USER_CREATE_PASSWORD_RETYPE': False,
+    'SEND_ACTIVATION_EMAIL': True,
     'ACTIVATION_URL': 'activate/{uid}/{token}',
     'SERIALIZERS': {
         'user_create': 'user.serializers.UserCreateSerializer',
@@ -142,15 +142,21 @@ DJOSER = {
     }
 }
 
-# Cloudinary Storage Settings
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'your_actual_cloud_name',
-    'API_KEY': 'your_actual_api_key',
-    'API_SECRET': 'your_actual_api_secret',
-}
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# Cloudinary Storage Settings with Local Fallback
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_CLOUD_NAME != 'your_actual_cloud_name':
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    }
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+else:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Email / SMTP Settings (Gmail)
+# Email / SMTP Settings (Gmail) with Console Debugging
+# Email / SMTP Settings (Gmail) – using real Gmail for activation
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587

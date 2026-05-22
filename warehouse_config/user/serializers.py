@@ -9,16 +9,21 @@ class UserCreateSerializer(DjoserUserCreateSerializer):
     class Meta(DjoserUserCreateSerializer.Meta):
         model = User
         fields = (
-            'id', 
-            'email', 
-            'username', 
-            'first_name', 
-            'last_name', 
-            'password', 
-            'address', 
-            'age', 
-            'birthday'
+            'id',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'password',
         )
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': False},
+        }
+
+    def create(self, validated_data):
+        # Let Djoser handle activation email (DEBUG mode prints to console)
+        return super().create(validated_data)
 
 # This handles User Profile viewing/updates (GET/PUT)
 # Djoser uses this for the /users/me/ endpoint
@@ -33,5 +38,8 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name', 
             'address', 
             'age', 
-            'birthday'
+            'birthday',
+            'profile_picture',
+            'is_admin',
+            'is_staff'
         )

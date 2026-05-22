@@ -4,9 +4,12 @@ import Modal from '../components/Modal';
 import { getinventory, API } from '../api'; 
 import { Inventory as InventoryType } from '../types'; 
 
+import axios from 'axios';
+
 const Inventory: React.FC = () => {
     const [items, setItems] = useState<InventoryType[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isAdminOrStaff, setIsAdminOrStaff] = useState(false);
     
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<any | null>(null);
@@ -21,6 +24,23 @@ const Inventory: React.FC = () => {
             console.error("FAILED_TO_FETCH_REGISTRY", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchProfile = async () => {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/user/auth/users/me/', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (response.data.is_admin || response.data.is_staff) {
+                setIsAdminOrStaff(true);
+            }
+        } catch (error) {
+            console.error("Session Expired or Unauthorized in Inventory", error);
         }
     };
 
@@ -41,6 +61,7 @@ const Inventory: React.FC = () => {
     };
 
     useEffect(() => {
+        fetchProfile();
         fetchInventory();
     }, []);
 
@@ -122,12 +143,14 @@ const Inventory: React.FC = () => {
                                     >
                                         View_Details
                                     </button>
-                                    <button 
-                                        onClick={() => handleDelete(item.id, item.product_name)}
-                                        className="flex-1 border border-neon-pink/50 text-neon-pink py-1.5 text-[9px] font-black uppercase hover:bg-neon-pink hover:text-white transition-colors"
-                                    >
-                                        Delete_SKU
-                                    </button>
+                                    {isAdminOrStaff && (
+                                        <button 
+                                            onClick={() => handleDelete(item.id, item.product_name)}
+                                            className="flex-1 border border-neon-pink/50 text-neon-pink py-1.5 text-[9px] font-black uppercase hover:bg-neon-pink hover:text-white transition-colors"
+                                        >
+                                            Delete_SKU
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

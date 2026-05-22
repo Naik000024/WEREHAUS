@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, Platform, Modal, ScrollView } from 'react-native';
 import { Colors } from '../theme/colors';
-import { getOrders, fulfillOrder, API, getInventory, createShipment } from '../api/client';
+import { getOrders, fulfillOrder, API, getInventory, createShipment, getCurrentUser } from '../api/client';
 import { Order, Inventory } from '../types';
 import { Truck, Trash2, CheckCircle, Clock, Plus, X } from 'lucide-react-native';
 import { Input } from '../components/Input';
@@ -12,6 +12,7 @@ const OrdersScreen = () => {
     const [inventory, setInventory] = useState<Inventory[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [isAdminOrStaff, setIsAdminOrStaff] = useState(false);
     
     // Allocation State
     const [allocationModalVisible, setAllocationModalVisible] = useState(false);
@@ -23,12 +24,16 @@ const OrdersScreen = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const [ordersData, inventoryData] = await Promise.all([
+            const [ordersData, inventoryData, userData] = await Promise.all([
                 getOrders(),
-                getInventory()
+                getInventory(),
+                getCurrentUser()
             ]);
             setOrders(ordersData);
             setInventory(inventoryData);
+            if (userData.is_admin || userData.is_staff) {
+                setIsAdminOrStaff(true);
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -131,21 +136,25 @@ const OrdersScreen = () => {
 
                 <View style={styles.cardFooter}>
                     {!isShipped ? (
-                        <View style={styles.actionRow}>
-                            <TouchableOpacity 
-                                style={styles.fulfillButton} 
-                                onPress={() => handleFulfill(item.id)}
-                            >
-                                <Truck size={16} color={Colors.background} />
-                                <Text style={styles.fulfillButtonText}>EXECUTE_SHIPMENT</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                style={styles.purgeButton} 
-                                onPress={() => handleDelete(item.id)}
-                            >
-                                <Trash2 size={16} color={Colors.error} />
-                            </TouchableOpacity>
-                        </View>
+                        isAdminOrStaff ? (
+                            <View style={styles.actionRow}>
+                                <TouchableOpacity 
+                                    style={styles.fulfillButton} 
+                                    onPress={() => handleFulfill(item.id)}
+                                >
+                                    <Truck size={16} color={Colors.background} />
+                                    <Text style={styles.fulfillButtonText}>EXECUTE_SHIPMENT</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={styles.purgeButton} 
+                                    onPress={() => handleDelete(item.id)}
+                                >
+                                    <Trash2 size={16} color={Colors.error} />
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <Text style={styles.readOnlyText}>STATUS: OPERATOR_READ_ONLY</Text>
+                        )
                     ) : (
                         <Text style={styles.completedText}>LOG_ENTRY: SHIPMENT_FINALIZED</Text>
                     )}
@@ -180,12 +189,14 @@ const OrdersScreen = () => {
                             <Text style={styles.emptyText}>NO_PENDING_ORDERS</Text>
                         }
                     />
-                    <TouchableOpacity 
-                        style={styles.fab} 
-                        onPress={() => setAllocationModalVisible(true)}
-                    >
-                        <Plus size={24} color={Colors.background} />
-                    </TouchableOpacity>
+                    {isAdminOrStaff && (
+                        <TouchableOpacity 
+                            style={styles.fab} 
+                            onPress={() => setAllocationModalVisible(true)}
+                        >
+                            <Plus size={24} color={Colors.background} />
+                        </TouchableOpacity>
+                    )}
                 </>
             )}
 
@@ -365,6 +376,15 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    },
+    readOnlyText: {
+        color: Colors.textDim,
+        fontSize: 9,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
     emptyText: {
         color: Colors.textDim,

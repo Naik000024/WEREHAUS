@@ -20,4 +20,7 @@ urlpatterns = [
     
     # The Analytics/Dashboard Data
     path('reports/dashboard/', views.FulfillmentReportView.as_view()),
+
+    # Chatbot Endpoint
+    path('chatbot/', views.ChatbotView.as_view()),
 ]

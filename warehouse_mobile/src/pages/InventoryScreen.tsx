@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Alert, Modal, Platform, ScrollView } from 'react-native';
 import { Colors } from '../theme/colors';
-import { getInventory, API, createProduct, updateInventory } from '../api/client';
+import { getInventory, API, createProduct, updateInventory, getCurrentUser } from '../api/client';
 import { Inventory as InventoryType } from '../types';
 import { Search, RotateCcw, Trash2, Info, X, Plus } from 'lucide-react-native';
 import { Input } from '../components/Input';
@@ -13,6 +13,7 @@ const InventoryScreen = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedItem, setSelectedItem] = useState<InventoryType | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [isAdminOrStaff, setIsAdminOrStaff] = useState(false);
     
     // New functionality state
     const [addModalVisible, setAddModalVisible] = useState(false);
@@ -27,8 +28,14 @@ const InventoryScreen = () => {
     const fetchInventory = useCallback(async () => {
         try {
             setLoading(true);
-            const data = await getInventory();
+            const [data, userData] = await Promise.all([
+                getInventory(),
+                getCurrentUser()
+            ]);
             setItems(data);
+            if (userData.is_admin || userData.is_staff) {
+                setIsAdminOrStaff(true);
+            }
         } catch (error) {
             console.error(error);
             Alert.alert("Sync Error", "Failed to load inventory database.");
@@ -139,15 +146,17 @@ const InventoryScreen = () => {
                     </View>
                 </View>
 
-                <View style={styles.cardFooter}>
-                    <TouchableOpacity 
-                        style={styles.deleteButton} 
-                        onPress={() => handleDelete(item.id, item.product_name)}
-                    >
-                        <Trash2 size={16} color={Colors.error} />
-                        <Text style={styles.deleteButtonText}>DELETE_SKU</Text>
-                    </TouchableOpacity>
-                </View>
+                {isAdminOrStaff && (
+                    <View style={styles.cardFooter}>
+                        <TouchableOpacity 
+                            style={styles.deleteButton} 
+                            onPress={() => handleDelete(item.id, item.product_name)}
+                        >
+                            <Trash2 size={16} color={Colors.error} />
+                            <Text style={styles.deleteButtonText}>DELETE_SKU</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
         );
     };
@@ -186,12 +195,14 @@ const InventoryScreen = () => {
                             <Text style={styles.emptyText}>NO_RECORDS_FOUND</Text>
                         }
                     />
-                    <TouchableOpacity 
-                        style={styles.fab} 
-                        onPress={() => setAddModalVisible(true)}
-                    >
-                        <Plus size={24} color={Colors.background} />
-                    </TouchableOpacity>
+                    {isAdminOrStaff && (
+                        <TouchableOpacity 
+                            style={styles.fab} 
+                            onPress={() => setAddModalVisible(true)}
+                        >
+                            <Plus size={24} color={Colors.background} />
+                        </TouchableOpacity>
+                    )}
                 </>
             )}
 
@@ -216,25 +227,27 @@ const InventoryScreen = () => {
                                 <DetailRow label="STOCK_AVAIL" value={`${selectedItem.quantity_available} UNITS`} color={Colors.primary} />
                                 <DetailRow label="LAST_SYNC" value={new Date(selectedItem.last_updated).toLocaleString()} />
                                 
-                                <View style={styles.restockSection}>
-                                    <Text style={styles.restockTitle}>[ RESTOCK_INVENTORY ]</Text>
-                                    <View style={styles.restockRow}>
-                                        <TextInput 
-                                            style={styles.restockInput}
-                                            keyboardType="numeric"
-                                            placeholder="QTY"
-                                            placeholderTextColor={Colors.textDim}
-                                            value={restockQty}
-                                            onChangeText={setRestockQty}
-                                        />
-                                        <TouchableOpacity 
-                                            style={styles.restockButton}
-                                            onPress={handleRestock}
-                                        >
-                                            <Text style={styles.restockButtonText}>COMMIT_STOCK</Text>
-                                        </TouchableOpacity>
+                                {isAdminOrStaff && (
+                                    <View style={styles.restockSection}>
+                                        <Text style={styles.restockTitle}>[ RESTOCK_INVENTORY ]</Text>
+                                        <View style={styles.restockRow}>
+                                            <TextInput 
+                                                style={styles.restockInput}
+                                                keyboardType="numeric"
+                                                placeholder="QTY"
+                                                placeholderTextColor={Colors.textDim}
+                                                value={restockQty}
+                                                onChangeText={setRestockQty}
+                                            />
+                                            <TouchableOpacity 
+                                                style={styles.restockButton}
+                                                onPress={handleRestock}
+                                            >
+                                                <Text style={styles.restockButtonText}>COMMIT_STOCK</Text>
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
-                                </View>
+                                )}
                             </View>
                         )}
                     </View>

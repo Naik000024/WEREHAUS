@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, ActivityIndicator, Platform, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
 import { Colors } from '../theme/colors';
-import { getFulfillmentReport } from '../api/client';
-import { RefreshCw, TrendingUp, CheckCircle, AlertTriangle } from 'lucide-react-native';
+import { getFulfillmentReport, chatbotQuery } from '../api/client';
+import { RefreshCw, TrendingUp, CheckCircle, AlertTriangle, MessageSquare, Send, X } from 'lucide-react-native';
 
 const AnalyticsCard = ({ label, value, color, icon: Icon, alert }: any) => (
     <View style={[styles.card, { borderColor: color }]}>
@@ -20,6 +20,16 @@ const AnalyticsCard = ({ label, value, color, icon: Icon, alert }: any) => (
 const DashboardScreen = () => {
     const [stats, setStats] = useState<any>(null);
     const [refreshing, setRefreshing] = useState(false);
+
+    // Chatbot States
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [messages, setMessages] = useState<any[]>([
+        { id: '1', sender: 'bot', text: "🤖 [WEREHAUS_INTELLIGENCE_ONLINE]\nGreetings! I am your automated inventory assistant. Type `help` to list supported system diagnostics." }
+    ]);
+    const [input, setInput] = useState("");
+    const [chatLoading, setChatLoading] = useState(false);
+
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const loadData = useCallback(async () => {
         try {
@@ -43,6 +53,25 @@ const DashboardScreen = () => {
         loadData();
     };
 
+    const handleSendMessage = async () => {
+        if (!input.trim()) return;
+        const userText = input;
+        setInput("");
+        const userMsgId = Date.now().toString();
+        setMessages(prev => [...prev, { id: userMsgId, sender: 'user', text: userText }]);
+        setChatLoading(true);
+
+        try {
+            const data = await chatbotQuery(userText);
+            setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: data.reply }]);
+        } catch (error) {
+            console.error(error);
+            setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: "🤖 [CONNECTION_FAIL] Could not establish secure uplink to intelligence core." }]);
+        } finally {
+            setChatLoading(false);
+        }
+    };
+
     if (!stats && !refreshing) {
         return (
             <View style={styles.loadingContainer}>
@@ -53,49 +82,119 @@ const DashboardScreen = () => {
     }
 
     return (
-        <ScrollView 
-            style={styles.container}
-            refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
-            }
-        >
-            <View style={styles.content}>
-                <View style={styles.syncRow}>
-                    <TouchableOpacity style={styles.syncButton} onPress={onRefresh}>
-                        <RefreshCw size={12} color={Colors.primary} />
-                        <Text style={styles.syncButtonText}>FORCE_RE-SYNC</Text>
-                    </TouchableOpacity>
-                </View>
+        <View style={{ flex: 1, backgroundColor: Colors.background }}>
+            <ScrollView 
+                style={styles.container}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
+                }
+            >
+                <View style={styles.content}>
+                    <View style={styles.syncRow}>
+                        <TouchableOpacity style={styles.syncButton} onPress={onRefresh}>
+                            <RefreshCw size={12} color={Colors.primary} />
+                            <Text style={styles.syncButtonText}>FORCE_RE-SYNC</Text>
+                        </TouchableOpacity>
+                    </View>
 
-                <View style={styles.statsGrid}>
-                    <AnalyticsCard 
-                        label="Total Orders" 
-                        value={stats?.total_orders || 0} 
-                        color={Colors.primary} 
-                        icon={TrendingUp} 
-                    />
-                    <AnalyticsCard 
-                        label="Shipped" 
-                        value={stats?.shipped_orders || 0} 
-                        color={Colors.success} 
-                        icon={CheckCircle} 
-                    />
-                    <AnalyticsCard 
-                        label="Low Stock SKU" 
-                        value={stats?.low_stock_items || 0} 
-                        color={stats?.low_stock_items > 0 ? Colors.error : Colors.textDim} 
-                        icon={AlertTriangle}
-                        alert={stats?.low_stock_items > 0}
-                    />
-                </View>
+                    <View style={styles.statsGrid}>
+                        <AnalyticsCard 
+                            label="Total Orders" 
+                            value={stats?.total_orders || 0} 
+                            color={Colors.primary} 
+                            icon={TrendingUp} 
+                        />
+                        <AnalyticsCard 
+                            label="Shipped" 
+                            value={stats?.shipped_orders || 0} 
+                            color={Colors.success} 
+                            icon={CheckCircle} 
+                        />
+                        <AnalyticsCard 
+                            label="Low Stock SKU" 
+                            value={stats?.low_stock_items || 0} 
+                            color={stats?.low_stock_items > 0 ? Colors.error : Colors.textDim} 
+                            icon={AlertTriangle}
+                            alert={stats?.low_stock_items > 0}
+                        />
+                    </View>
 
-                {/* More sections can be added here as we implement other modules */}
-                <View style={styles.placeholderSection}>
-                    <Text style={styles.sectionTitle}>System Status: [ ONLINE ]</Text>
-                    <View style={styles.statusIndicator} />
+                    {/* System Status Display */}
+                    <View style={styles.placeholderSection}>
+                        <Text style={styles.sectionTitle}>System Status: [ ONLINE ]</Text>
+                        <View style={styles.statusIndicator} />
+                    </View>
                 </View>
-            </View>
-        </ScrollView>
+            </ScrollView>
+
+            {/* Chat Floating Action Button (FAB) */}
+            <TouchableOpacity style={styles.fab} onPress={() => setIsChatOpen(true)}>
+                <MessageSquare size={24} color={Colors.background} />
+            </TouchableOpacity>
+
+            {/* Chatbot Modal Dialog */}
+            <Modal
+                visible={isChatOpen}
+                animationType="slide"
+                onRequestClose={() => setIsChatOpen(false)}
+            >
+                <KeyboardAvoidingView 
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={styles.modalContainer}
+                >
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>🤖 WEREHAUS CO-PILOT</Text>
+                        <TouchableOpacity onPress={() => setIsChatOpen(false)}>
+                            <X size={20} color={Colors.white} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView 
+                        ref={scrollViewRef}
+                        style={styles.messageList}
+                        contentContainerStyle={styles.messageContent}
+                        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+                    >
+                        {messages.map((m) => (
+                            <View 
+                                key={m.id} 
+                                style={[
+                                    styles.messageBubble, 
+                                    m.sender === 'user' ? styles.userBubble : styles.botBubble
+                                ]}
+                            >
+                                <Text style={[
+                                    styles.messageText,
+                                    m.sender === 'user' ? styles.userText : styles.botText
+                                ]}>
+                                    {m.text}
+                                </Text>
+                            </View>
+                        ))}
+                        {chatLoading && (
+                            <View style={[styles.messageBubble, styles.botBubble, { opacity: 0.7 }]}>
+                                <Text style={[styles.messageText, styles.botText]}>[ ANALYZING_QUERY... ]</Text>
+                            </View>
+                        )}
+                    </ScrollView>
+
+                    <View style={styles.inputRow}>
+                        <TextInput 
+                            value={input}
+                            onChangeText={setInput}
+                            placeholder="TRANSMIT MESSAGE..."
+                            placeholderTextColor={Colors.textDim}
+                            style={styles.textInput}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                        />
+                        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+                            <Send size={16} color={Colors.background} />
+                        </TouchableOpacity>
+                    </View>
+                </KeyboardAvoidingView>
+            </Modal>
+        </View>
     );
 };
 
@@ -197,6 +296,107 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         backgroundColor: Colors.success,
         marginTop: 10,
+    },
+    fab: {
+        position: 'absolute',
+        bottom: 30,
+        right: 30,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: Colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 6,
+        zIndex: 99,
+    },
+    modalContainer: {
+        flex: 1,
+        backgroundColor: Colors.background,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+        backgroundColor: Colors.surface,
+    },
+    modalTitle: {
+        color: Colors.primary,
+        fontWeight: 'bold',
+        fontSize: 12,
+        letterSpacing: 1,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    },
+    messageList: {
+        flex: 1,
+        padding: 15,
+    },
+    messageContent: {
+        paddingBottom: 20,
+        gap: 15,
+    },
+    messageBubble: {
+        maxWidth: '85%',
+        padding: 12,
+        borderRadius: 8,
+    },
+    userBubble: {
+        alignSelf: 'flex-end',
+        backgroundColor: Colors.primary,
+    },
+    botBubble: {
+        alignSelf: 'flex-start',
+        backgroundColor: Colors.surface,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    messageText: {
+        fontSize: 11,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        lineHeight: 16,
+    },
+    userText: {
+        color: Colors.background,
+        fontWeight: 'bold',
+    },
+    botText: {
+        color: Colors.primary,
+    },
+    inputRow: {
+        flexDirection: 'row',
+        padding: 15,
+        borderTopWidth: 1,
+        borderTopColor: Colors.border,
+        backgroundColor: Colors.surface,
+        alignItems: 'center',
+        gap: 10,
+    },
+    textInput: {
+        flex: 1,
+        backgroundColor: Colors.background,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        color: Colors.white,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 6,
+        fontSize: 11,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    },
+    sendButton: {
+        backgroundColor: Colors.primary,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
     }
 });
 
