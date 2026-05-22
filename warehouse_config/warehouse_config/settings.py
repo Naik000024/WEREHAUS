@@ -74,7 +74,7 @@ WSGI_APPLICATION = 'warehouse_config.wsgi.application'
 # Database
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres:MARYNEL@localhost:5432/WERHAUS',
+        default='postgresql://postgres:N4pe1924@localhost:5432/WERHAUS',
         conn_max_age=600
     )
 }

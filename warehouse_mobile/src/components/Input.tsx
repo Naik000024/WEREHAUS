@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, TextInput, Text, StyleSheet, ViewStyle } from 'react-native';
+import { View, TextInput, Text, StyleSheet, ViewStyle, TextInputProps } from 'react-native';
 import { Colors } from '../theme/colors';
 
-interface InputProps {
+interface InputProps extends Omit<TextInputProps, 'style'> {
     label?: string;
     value: string;
     onChangeText: (text: string) => void;
@@ -13,7 +13,7 @@ interface InputProps {
 }
 
 export const Input: React.FC<InputProps> = ({ 
-    label, value, onChangeText, placeholder, secureTextEntry, error, style 
+    label, value, onChangeText, placeholder, secureTextEntry, error, style, ...rest
 }) => {
     return (
         <View style={[styles.container, style]}>
@@ -26,6 +26,7 @@ export const Input: React.FC<InputProps> = ({
                 placeholderTextColor={Colors.textDim}
                 secureTextEntry={secureTextEntry}
                 autoCapitalize="none"
+                {...rest}
             />
             {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
