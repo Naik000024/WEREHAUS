@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Alert, Modal, Platform, ScrollView } from 'react-native';
 import { Colors } from '../theme/colors';
-import { getInventory, API, createProduct, updateProduct } from '../api/client';
+import { getInventory, API, createProduct, updateProduct, updateInventory } from '../api/client';
 import { Inventory as InventoryType } from '../types';
 import { Search, RotateCcw, Trash2, Info, X, Plus } from 'lucide-react-native';
 import { Input } from '../components/Input';
@@ -68,7 +68,7 @@ const InventoryScreen = () => {
 
         try {
             const newTotal = selectedItem.quantity_available + parseInt(restockQty);
-            await updateProduct(selectedItem.id, {
+            await updateInventory(selectedItem.id, {
                 quantity_available: newTotal
             });
             Alert.alert("Success", `Stock updated to ${newTotal} units.`);

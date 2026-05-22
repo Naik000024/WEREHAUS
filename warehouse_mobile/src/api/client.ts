@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Product, Inventory, Order, OrderItem } from "../types";
 
 // Base URL - Use your computer's local IP for testing
-const ROOT_URL = "http://192.168.137.86:8000/";
+const ROOT_URL = "http://172.20.10.10:8000/";
 
 export const API = axios.create({ baseURL: ROOT_URL });
 
@@ -75,6 +75,11 @@ export const deleteProduct = async (id: number): Promise<void> => {
 // --- INVENTORY API CALLS ---
 export const getInventory = async (): Promise<Inventory[]> => {
     const response = await API.get<Inventory[]>("api/inventory/");
+    return response.data;
+};
+
+export const updateInventory = async (id: number, data: Partial<Inventory>): Promise<Inventory> => {
+    const response = await API.patch<Inventory>(`api/inventory/${id}/`, data);
     return response.data;
 };
 
