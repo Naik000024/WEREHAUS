@@ -7,6 +7,14 @@ if (resolvedBase === 'undefined' || resolvedBase === 'null' || !resolvedBase.tri
     resolvedBase = '';
 }
 
+// Convert raw service hostnames (e.g., 'warehouse-backend-ship') into full HTTPS onrender domains
+if (resolvedBase && !resolvedBase.startsWith('http')) {
+    if (!resolvedBase.includes('.')) {
+        resolvedBase = `${resolvedBase}.onrender.com`;
+    }
+    resolvedBase = `https://${resolvedBase}`;
+}
+
 if (!resolvedBase && typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     // Automatic matching of Render service suffixes
