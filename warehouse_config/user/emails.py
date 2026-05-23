@@ -16,14 +16,19 @@ class CustomActivationEmail(email.ActivationEmail):
         
         # Dynamically adapt local IP for mobile / localhost testing
         request = getattr(self, 'request', None) or context.get('request')
-        if request and 'RENDER' not in os.environ:
-            host = request.get_host()
-            if ':' in host:
-                ip_or_name = host.split(':')[0]
-                domain = f"{ip_or_name}:3000"
-            else:
-                domain = f"{host}:3000"
-            protocol = 'http'
+        django_request = getattr(request, '_request', request) if request else None
+        
+        if django_request and hasattr(django_request, 'get_host') and 'RENDER' not in os.environ:
+            try:
+                host = django_request.get_host()
+                if ':' in host:
+                    ip_or_name = host.split(':')[0]
+                    domain = f"{ip_or_name}:3000"
+                else:
+                    domain = f"{host}:3000"
+                protocol = 'http'
+            except Exception as e:
+                print(f"--- [WARNING] Failed to dynamically resolve local host IP: {e} ---")
         
         uid = context.get("uid")
         token = context.get("token")
