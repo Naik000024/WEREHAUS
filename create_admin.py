@@ -1,5 +1,9 @@
 import os
+import sys
 import django
+
+# Add the 'warehouse_config' subdirectory to Python's system path
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'warehouse_config'))
 
 # Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'warehouse_config.settings')
