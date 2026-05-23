@@ -130,19 +130,15 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Djoser Configuration (Updated for Activation)
+# Djoser Configuration (Updated to bypass Render SMTP blocks)
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': False,
-    'SEND_ACTIVATION_EMAIL': True,
-    'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': False,
     'SERIALIZERS': {
         'user_create': 'user.serializers.UserCreateSerializer',
         'user': 'user.serializers.UserSerializer',
         'current_user': 'user.serializers.UserSerializer',
-    },
-    'EMAIL': {
-        'activation': 'user.emails.CustomActivationEmail',
     }
 }
 
