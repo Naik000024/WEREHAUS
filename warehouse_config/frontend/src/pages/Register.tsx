@@ -31,7 +31,15 @@ const Register = () => {
             navigate('/login');
         } catch (error: any) {
             console.error("REGISTRATION_FAILED", error.response?.data);
-            alert("ACCESS_DENIED: Check credentials or email format");
+            const data = error.response?.data;
+            if (data && typeof data === 'object') {
+                const messages = Object.entries(data)
+                    .map(([field, errs]) => `${field.toUpperCase()}: ${Array.isArray(errs) ? errs.join(' ') : errs}`)
+                    .join('\n');
+                alert(`REGISTRATION_FAILED:\n${messages}`);
+            } else {
+                alert("ACCESS_DENIED: Check credentials or email format");
+            }
         }
     };
 
