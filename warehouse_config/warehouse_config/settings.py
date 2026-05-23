@@ -159,15 +159,8 @@ else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Email / SMTP Settings (Gmail) with Console Debugging
-# Email / SMTP Settings (Gmail) – using real Gmail for activation
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'quezon.nyko16@gmail.com'
-EMAIL_HOST_PASSWORD = 'yqziwjylemtftuoo'
-DEFAULT_FROM_EMAIL = 'quezon.nyko16@gmail.com'
+# Custom Resend HTTP API Email Backend (Bypasses Render SMTP Blocks)
+EMAIL_BACKEND = 'user.email_backend.ResendEmailBackend'
+DEFAULT_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'onboarding@resend.dev')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
