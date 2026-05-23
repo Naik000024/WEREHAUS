@@ -14,6 +14,17 @@ class CustomActivationEmail(email.ActivationEmail):
         domain = djoser_settings.get('DOMAIN', 'warehouse-frontend-bxqn.onrender.com')
         protocol = djoser_settings.get('PROTOCOL', 'https')
         
+        # Dynamically adapt local IP for mobile / localhost testing
+        request = getattr(self, 'request', None) or context.get('request')
+        if request and 'RENDER' not in os.environ:
+            host = request.get_host()
+            if ':' in host:
+                ip_or_name = host.split(':')[0]
+                domain = f"{ip_or_name}:3000"
+            else:
+                domain = f"{host}:3000"
+            protocol = 'http'
+        
         uid = context.get("uid")
         token = context.get("token")
         context["url"] = f"{protocol}://{domain}/#/activate/{uid}/{token}"
@@ -24,6 +35,8 @@ class CustomActivationEmail(email.ActivationEmail):
         context = self.get_context_data()
         username = context.get("user").username
         activation_url = context.get("url")
+        uid = context.get("uid")
+        token = context.get("token")
 
         # 2. Set the Subject
         self.subject = "Activate your Warehouse Account"
@@ -33,6 +46,9 @@ class CustomActivationEmail(email.ActivationEmail):
             f"Hi {username},\n\n"
             f"Please click the link below to activate your account:\n"
             f"{activation_url}\n\n"
+            f"Alternatively, if you are activating from the mobile app, use the following credentials:\n"
+            f"UID: {uid}\n"
+            f"Token: {token}\n\n"
             f"If you did not request this, please ignore this email."
         )
 
