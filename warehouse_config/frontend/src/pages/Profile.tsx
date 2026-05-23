@@ -80,9 +80,19 @@ const Profile = () => {
 
   const getAvatarUrl = (path: string) => {
     if (!path) return null;
-    if (path.startsWith('http')) return path;
-    const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
-    return `${base}${path}`;
+    
+    let url = path;
+    if (!url.startsWith('http')) {
+      const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+      const cleanPath = url.startsWith('/') ? url : `/${url}`;
+      url = `${base}${cleanPath}`;
+    }
+    
+    // If the frontend is loaded over HTTPS, upgrade backend URL scheme to HTTPS to bypass mixed content blocks
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+      url = url.replace(/^http:/i, 'https:');
+    }
+    return url;
   };
 
   const displayValue = (val: any, fallback: string) => (val && val !== "" ? val : fallback);

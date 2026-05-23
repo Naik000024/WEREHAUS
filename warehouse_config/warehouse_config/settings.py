@@ -143,7 +143,7 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': False,
     'SEND_ACTIVATION_EMAIL': True,
-    'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'DOMAIN': DJOSER_DOMAIN,
     'PROTOCOL': DJOSER_PROTOCOL,
     'SERIALIZERS': {

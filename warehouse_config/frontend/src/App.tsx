@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MasterDashboard from './pages/MasterDashboard';
 import Inventory from './pages/Inventory';
 import LogsArchive from './pages/LogsArchive';

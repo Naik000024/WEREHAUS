@@ -16,7 +16,7 @@ class CustomActivationEmail(email.ActivationEmail):
         
         uid = context.get("uid")
         token = context.get("token")
-        context["url"] = f"{protocol}://{domain}/activate/{uid}/{token}"
+        context["url"] = f"{protocol}://{domain}/#/activate/{uid}/{token}"
         return context
 
     def send(self, to, *args, **kwargs):
