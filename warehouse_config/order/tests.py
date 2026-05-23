@@ -178,3 +178,83 @@ class WerehausTestCase(TestCase):
         response = self.client.post('/api/chatbot/', {'message': f'status of order {self.order1.id}'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('TRACK_ORDER_RESOLVED', response.data['reply'])
+
+    # ---------------------------------------------------------------
+    # ORDER DETAIL MODAL TESTS
+    # ---------------------------------------------------------------
+
+    def test_order_detail_fields_in_serializer(self):
+        """Order API should return location, assigned_deliverer, shipped_at."""
+        self.client.force_authenticate(user=self.basic_user)
+        response = self.client.get(f'/api/orders/{self.order1.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('location', response.data)
+        self.assertIn('assigned_deliverer', response.data)
+        self.assertIn('shipped_at', response.data)
+        self.assertIn('order_date', response.data)
+
+    def test_order_location_default(self):
+        """Newly created orders should default to Luzon."""
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.get(f'/api/orders/{self.order1.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['location'], 'Luzon')
+
+    def test_patch_order_location(self):
+        """Admin/staff should be able to PATCH a new location onto an order."""
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.patch(
+            f'/api/orders/{self.order1.id}/',
+            {'location': 'Visayas'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['location'], 'Visayas')
+        self.order1.refresh_from_db()
+        self.assertEqual(self.order1.location, 'Visayas')
+
+    def test_patch_order_assigned_deliverer(self):
+        """Admin/staff should be able to assign a deliverer via PATCH."""
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.patch(
+            f'/api/orders/{self.order1.id}/',
+            {'assigned_deliverer': 'Mark'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['assigned_deliverer'], 'Mark')
+        self.order1.refresh_from_db()
+        self.assertEqual(self.order1.assigned_deliverer, 'Mark')
+
+    def test_basic_user_cannot_patch_order(self):
+        """Basic read-only users should not be able to PATCH order fields."""
+        self.client.force_authenticate(user=self.basic_user)
+        response = self.client.patch(
+            f'/api/orders/{self.order1.id}/',
+            {'assigned_deliverer': 'Nyko'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_fulfill_sets_shipped_at(self):
+        """Fulfilling an order should automatically set shipped_at timestamp."""
+        self.client.force_authenticate(user=self.staff_user)
+        before = timezone.now()
+        response = self.client.post(f'/api/orders/{self.order1.id}/fulfill/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.order1.refresh_from_db()
+        self.assertIsNotNone(self.order1.shipped_at)
+        self.assertGreaterEqual(self.order1.shipped_at, before)
+        self.assertEqual(self.order1.status, 'SHIPPED')
+
+    def test_order_list_includes_detail_fields(self):
+        """The orders list endpoint should include the new detail fields for each order."""
+        self.client.force_authenticate(user=self.basic_user)
+        response = self.client.get('/api/orders/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreater(len(response.data), 0)
+        order_data = response.data[0]
+        self.assertIn('location', order_data)
+        self.assertIn('assigned_deliverer', order_data)
+        self.assertIn('shipped_at', order_data)
+

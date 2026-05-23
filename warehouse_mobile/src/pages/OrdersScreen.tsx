@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, 
 import { Colors } from '../theme/colors';
 import { getOrders, fulfillOrder, API, getInventory, createShipment, getCurrentUser } from '../api/client';
 import { Order, Inventory } from '../types';
-import { Truck, Trash2, CheckCircle, Clock, Plus, X } from 'lucide-react-native';
+import { Truck, Trash2, CheckCircle, Clock, Plus, X, Info } from 'lucide-react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
+import OrderStatusModal from '../components/OrderStatusModal';
 
 const OrdersScreen = () => {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -13,6 +14,10 @@ const OrdersScreen = () => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [isAdminOrStaff, setIsAdminOrStaff] = useState(false);
+
+    // Order Detail Modal State
+    const [detailModalVisible, setDetailModalVisible] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     
     // Allocation State
     const [allocationModalVisible, setAllocationModalVisible] = useState(false);
@@ -106,31 +111,46 @@ const OrdersScreen = () => {
         );
     };
 
+    const handleOpenDetail = (order: Order) => {
+        setSelectedOrder(order);
+        setDetailModalVisible(true);
+    };
+
     const renderItem = ({ item }: { item: Order }) => {
         const isShipped = item.status === 'SHIPPED';
 
         return (
-            <View style={styles.card}>
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() => handleOpenDetail(item)}
+                activeOpacity={0.8}
+            >
                 <View style={styles.cardHeader}>
-                    <View>
+                    <View style={{ flex: 1 }}>
                         <Text style={styles.orderId}>TRACKING_ID: #{item.id}</Text>
                         <Text style={styles.customerName}>{item.customer_name}</Text>
+                        {item.location ? (
+                            <Text style={styles.locationTag}>📍 {item.location}{item.assigned_deliverer ? `  •  ${item.assigned_deliverer}` : ''}</Text>
+                        ) : null}
                     </View>
-                    <View style={[
-                        styles.statusBadge, 
-                        { backgroundColor: isShipped ? Colors.success + '20' : Colors.error + '20' }
-                    ]}>
-                        {isShipped ? (
-                            <CheckCircle size={10} color={Colors.success} />
-                        ) : (
-                            <Clock size={10} color={Colors.primary} />
-                        )}
-                        <Text style={[
-                            styles.statusText, 
-                            { color: isShipped ? Colors.success : Colors.primary }
+                    <View style={styles.rightCol}>
+                        <View style={[
+                            styles.statusBadge, 
+                            { backgroundColor: isShipped ? Colors.success + '20' : Colors.error + '20' }
                         ]}>
-                            {item.status}
-                        </Text>
+                            {isShipped ? (
+                                <CheckCircle size={10} color={Colors.success} />
+                            ) : (
+                                <Clock size={10} color={Colors.primary} />
+                            )}
+                            <Text style={[
+                                styles.statusText, 
+                                { color: isShipped ? Colors.success : Colors.primary }
+                            ]}>
+                                {item.status}
+                            </Text>
+                        </View>
+                        <Info size={14} color={Colors.textDim} style={{ marginTop: 8 }} />
                     </View>
                 </View>
 
@@ -140,26 +160,26 @@ const OrdersScreen = () => {
                             <View style={styles.actionRow}>
                                 <TouchableOpacity 
                                     style={styles.fulfillButton} 
-                                    onPress={() => handleFulfill(item.id)}
+                                    onPress={(e) => { e.stopPropagation?.(); handleFulfill(item.id); }}
                                 >
                                     <Truck size={16} color={Colors.background} />
                                     <Text style={styles.fulfillButtonText}>EXECUTE_SHIPMENT</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity 
                                     style={styles.purgeButton} 
-                                    onPress={() => handleDelete(item.id)}
+                                    onPress={(e) => { e.stopPropagation?.(); handleDelete(item.id); }}
                                 >
                                     <Trash2 size={16} color={Colors.error} />
                                 </TouchableOpacity>
                             </View>
                         ) : (
-                            <Text style={styles.readOnlyText}>STATUS: OPERATOR_READ_ONLY</Text>
+                            <Text style={styles.readOnlyText}>TAP TO VIEW DETAILS</Text>
                         )
                     ) : (
-                        <Text style={styles.completedText}>LOG_ENTRY: SHIPMENT_FINALIZED</Text>
+                        <Text style={styles.completedText}>LOG_ENTRY: SHIPMENT_FINALIZED  •  TAP FOR DETAILS</Text>
                     )}
                 </View>
-            </View>
+            </TouchableOpacity>
         );
     };
     return (
@@ -199,6 +219,15 @@ const OrdersScreen = () => {
                     )}
                 </>
             )}
+
+            {/* ORDER DETAIL MODAL */}
+            <OrderStatusModal
+                visible={detailModalVisible}
+                order={selectedOrder}
+                onClose={() => setDetailModalVisible(false)}
+                onUpdated={() => { setDetailModalVisible(false); fetchData(); }}
+                isAdminOrStaff={isAdminOrStaff}
+            />
 
             {/* STOCK ALLOCATION MODAL */}
             <Modal
@@ -307,6 +336,16 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 15,
         marginBottom: 15,
+    },
+    locationTag: {
+        color: Colors.textDim,
+        fontSize: 10,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        marginTop: 4,
+    },
+    rightCol: {
+        alignItems: 'flex-end',
+        justifyContent: 'flex-start',
     },
     cardHeader: {
         flexDirection: 'row',

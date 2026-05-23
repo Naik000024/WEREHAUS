@@ -104,6 +104,16 @@ export const fulfillOrder = async (id: number): Promise<{status: string}> => {
     return response.data;
 };
 
+export const getOrderDetail = async (id: number): Promise<Order> => {
+    const response = await API.get<Order>(`api/orders/${id}/`);
+    return response.data;
+};
+
+export const updateOrder = async (id: number, data: Partial<Order>): Promise<Order> => {
+    const response = await API.patch<Order>(`api/orders/${id}/`, data);
+    return response.data;
+};
+
 export const getFulfillmentReport = async (): Promise<any> => {
     const response = await API.get("api/reports/dashboard/");
     return response.data;

@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
 from django.db.models import Sum
+from django.utils import timezone
 from .models import Product, Inventory, Order, OrderItem
 from .serializers import ProductSerializer, InventorySerializer, OrderSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -93,6 +94,7 @@ class OrderFulfillView(APIView):
                 inventory.save()
 
             order.status = 'SHIPPED' 
+            order.shipped_at = timezone.now()
             order.save()
             
         return Response({'status': 'Stock deducted and order shipped.'})

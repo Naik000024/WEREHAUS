@@ -29,10 +29,23 @@ class Order(models.Model):
         ('DELIVERED', 'Delivered'),
         ('CANCELLED', 'Cancelled'),
     ]
+    LOCATION_CHOICES = [
+        ('Luzon', 'Luzon'),
+        ('Visayas', 'Visayas'),
+        ('Mindanao', 'Mindanao'),
+    ]
+    DELIVERER_CHOICES = [
+        ('Mark', 'Mark'),
+        ('Nyko', 'Nyko'),
+        ('Dominic', 'Dominic'),
+        ('Godwin', 'Godwin'),
+    ]
     customer_name = models.CharField(max_length=200)
+    location = models.CharField(max_length=20, choices=LOCATION_CHOICES, default='Luzon')
+    assigned_deliverer = models.CharField(max_length=20, choices=DELIVERER_CHOICES, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     order_date = models.DateTimeField(auto_now_add=True)
-
+    shipped_at = models.DateTimeField(null=True, blank=True)
     def __str__(self):
         return f"Order #{self.id} - {self.customer_name}"
 

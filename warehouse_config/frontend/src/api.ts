@@ -56,6 +56,16 @@ export const getorders = async (): Promise<Order[]> => {
     return response.data;
 };
 
+export const getorderdetail = async (id: number): Promise<Order> => {
+    const response = await API.get<Order>(`orders/${id}/`);
+    return response.data;
+};
+
+export const updateorder = async (id: number, data: Partial<Order>): Promise<Order> => {
+    const response = await API.patch<Order>(`orders/${id}/`, data);
+    return response.data;
+};
+
 export const createshipment = async (data: any): Promise<Order> => {
     const response = await API.post<Order>("orders/", data);
     return response.data;

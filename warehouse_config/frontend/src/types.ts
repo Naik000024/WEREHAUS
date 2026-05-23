@@ -30,7 +30,9 @@ export interface Order {
     customer_name: string;
     status: string;
     order_date: string;
-    // Use the interface instead of 'any' for better error catching
+    location?: string;
+    assigned_deliverer?: string;
+    shipped_at?: string;
     items: OrderItem[]; 
 }
 export interface Transaction {

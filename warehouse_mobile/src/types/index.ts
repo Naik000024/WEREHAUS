@@ -28,6 +28,9 @@ export interface Order {
     customer_name: string;
     status: string;
     order_date: string;
+    location: string;
+    assigned_deliverer: string | null;
+    shipped_at: string | null;
     items: OrderItem[]; 
 }
 

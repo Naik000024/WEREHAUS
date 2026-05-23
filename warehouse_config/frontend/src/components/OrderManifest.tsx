@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { getorders, fulfillorder, API } from '../api';
+import { getorders, fulfillorder, API, getorderdetail } from '../api';
 import { Order } from '../types';
+import OrderStatusModal from './OrderStatusModal';
+import axios from 'axios';
 
 interface Props { onAction: () => void; }
-
-import axios from 'axios';
 
 const OrderManifest: React.FC<Props> = ({ onAction }) => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [isAdminOrStaff, setIsAdminOrStaff] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchOrders = () => {
         getorders().then(setOrders);
@@ -60,6 +62,20 @@ const OrderManifest: React.FC<Props> = ({ onAction }) => {
         }
     };
 
+    const handleRowClick = (order: Order) => {
+        setSelectedOrder(order);
+        setIsModalOpen(true);
+    };
+
+    const handleModalUpdated = () => {
+        fetchOrders();
+        onAction();
+        // Update local order details in modal if open
+        if (selectedOrder) {
+            getorderdetail(selectedOrder.id).then(setSelectedOrder);
+        }
+    };
+
     return (
         <div className="bg-black/20 border border-gray-800 rounded-lg overflow-hidden backdrop-blur-md">
             <table className="w-full text-left font-mono text-[10px]">
@@ -73,9 +89,18 @@ const OrderManifest: React.FC<Props> = ({ onAction }) => {
                 </thead>
                 <tbody className="divide-y divide-gray-900">
                     {orders.map(o => (
-                        <tr key={o.id} className="hover:bg-neon-cyan/5 transition-colors group">
+                        <tr 
+                            key={o.id} 
+                            onClick={() => handleRowClick(o)}
+                            className="hover:bg-neon-cyan/5 transition-colors group cursor-pointer"
+                        >
                             <td className="p-4 text-gray-600">#{o.id}</td>
-                            <td className="p-4 text-white uppercase font-bold tracking-tight">{o.customer_name}</td>
+                            <td className="p-4">
+                                <div className="text-white uppercase font-bold tracking-tight">{o.customer_name}</div>
+                                <div className="text-[8px] text-gray-500 font-mono mt-0.5 tracking-wider lowercase">
+                                    📍 {o.location || 'luzon'} • {o.assigned_deliverer ? `deliverer: ${o.assigned_deliverer}` : 'unassigned'}
+                                </div>
+                            </td>
                             <td className="p-4">
                                 <span className={`px-2 py-0.5 rounded-sm font-bold ${
                                     o.status === 'SHIPPED' 
@@ -91,13 +116,19 @@ const OrderManifest: React.FC<Props> = ({ onAction }) => {
                                         {isAdminOrStaff ? (
                                             <>
                                                 <button 
-                                                    onClick={() => handleFulfill(o.id!)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleFulfill(o.id!);
+                                                    }}
                                                     className="border border-neon-cyan text-neon-cyan px-4 py-1 hover:bg-neon-cyan hover:text-black font-black transition-all shadow-sm hover:shadow-neon-cyan/50 text-[9px]"
                                                 >
                                                     EXECUTE_SHIPMENT
                                                 </button>
                                                 <button 
-                                                    onClick={() => handleDeleteOrder(o.id!)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteOrder(o.id!);
+                                                    }}
                                                     className="border border-red-500/50 text-red-500 px-3 py-1 hover:bg-red-500 hover:text-white font-black transition-all text-[9px]"
                                                 >
                                                     [ PURGE_RECORD ]
@@ -113,6 +144,14 @@ const OrderManifest: React.FC<Props> = ({ onAction }) => {
                     ))}
                 </tbody>
             </table>
+
+            <OrderStatusModal 
+                isOpen={isModalOpen}
+                order={selectedOrder}
+                onClose={() => setIsModalOpen(false)}
+                onUpdated={handleModalUpdated}
+                isAdminOrStaff={isAdminOrStaff}
+            />
         </div>
     );
 };
