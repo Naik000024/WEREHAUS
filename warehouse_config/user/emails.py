@@ -8,9 +8,11 @@ class CustomActivationEmail(email.ActivationEmail):
 
     def get_context_data(self):
         context = super().get_context_data()
-        # Ensure we have the user and the link
-        user = context.get("user")
-        context["url"] = f"http://localhost:3000/activate/{context.get('uid')}/{context.get('token')}"
+        domain = context.get("domain")
+        protocol = context.get("protocol")
+        uid = context.get("uid")
+        token = context.get("token")
+        context["url"] = f"{protocol}://{domain}/activate/{uid}/{token}"
         return context
 
     def send(self, to, *args, **kwargs):

@@ -51,3 +51,8 @@ stale_username = Account.objects.filter(username='naiku').first()
 if stale_username and not stale_username.is_superuser:
     print("Purging stale standard username 'naiku'")
     stale_username.delete()
+
+stale_mimo = Account.objects.filter(username='MIMO').first()
+if stale_mimo and not stale_mimo.is_superuser:
+    print("Purging stale standard username 'MIMO'")
+    stale_mimo.delete()
