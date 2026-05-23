@@ -39,3 +39,15 @@ else:
     u2.set_password('admin12345')
     u2.save()
     print("Successfully reset and verified superuser account: quezon.nyko16@gmail.com")
+
+# 3. Purge stale standard user records for 'quezonnyko@gmail.com' and username 'naiku'
+# so you can register them completely fresh and test the secure SMTP activation flow!
+stale_email = Account.objects.filter(email='quezonnyko@gmail.com').first()
+if stale_email and not stale_email.is_superuser:
+    print("Purging stale standard user record for: quezonnyko@gmail.com")
+    stale_email.delete()
+
+stale_username = Account.objects.filter(username='naiku').first()
+if stale_username and not stale_username.is_superuser:
+    print("Purging stale standard username 'naiku'")
+    stale_username.delete()
