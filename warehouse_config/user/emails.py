@@ -1,5 +1,7 @@
 from djoser import email
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+import os
 
 class CustomActivationEmail(email.ActivationEmail):
     # We leave these here, but we will override them in the send method
@@ -43,8 +45,10 @@ class CustomActivationEmail(email.ActivationEmail):
         uid = context.get("uid")
         token = context.get("token")
 
-        # 2. Set the Subject
+        # 2. Set the Subject, Recipients, and Sender
         self.subject = "Activate your Warehouse Account"
+        self.to = to
+        self.from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
 
         # 3. Set the Body (Plain Text)
         self.body = (
@@ -58,4 +62,4 @@ class CustomActivationEmail(email.ActivationEmail):
         )
 
         print(f"--- HARDCODED SEND: Sending to {to} ---")
-        return super().send(to, *args, **kwargs)
+        return EmailMultiAlternatives.send(self, *args, **kwargs)

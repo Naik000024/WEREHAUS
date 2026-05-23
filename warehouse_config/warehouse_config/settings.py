@@ -57,7 +57,10 @@ ROOT_URLCONF = 'warehouse_config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'user', 'templates','user')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'user', 'templates'),
+            os.path.join(BASE_DIR, 'user', 'templates', 'user'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
