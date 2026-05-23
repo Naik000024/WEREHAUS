@@ -11,30 +11,37 @@ import Activate from './pages/Activate'; // Import the activation component
 // Simple check to see if the operator is authenticated
 const isAuthenticated = () => !!localStorage.getItem('access_token');
 
+const ProtectedRoute = ({ element }: { element: React.ReactElement }) => {
+  return isAuthenticated() ? element : <Navigate to="/login" replace />;
+};
+
+const PublicRoute = ({ element }: { element: React.ReactElement }) => {
+  return !isAuthenticated() ? element : <Navigate to="/dashboard" replace />;
+};
+
 const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* 1. INITIAL ENTRY: Redirect to Login if not authenticated, otherwise Dashboard */}
+        {/* 1. INITIAL ENTRY */}
         <Route path="/" element={
-          isAuthenticated() ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+          isAuthenticated() ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
         } />
         
         {/* 2. AUTHENTICATION ROUTES */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<PublicRoute element={<Login />} />} />
+        <Route path="/register" element={<PublicRoute element={<Register />} />} />
         
         {/* 3. ACCOUNT ACTIVATION ROUTE */}
-        {/* This catches the link sent to your email by Djoser */}
         <Route path="/activate/:uid/:token" element={<Activate />} />
 
         {/* 4. MAIN APPLICATION ROUTES */}
-        <Route path="/dashboard" element={<MasterDashboard />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/logs" element={<LogsArchive />} />
+        <Route path="/dashboard" element={<ProtectedRoute element={<MasterDashboard />} />} />
+        <Route path="/inventory" element={<ProtectedRoute element={<Inventory />} />} />
+        <Route path="/logs" element={<ProtectedRoute element={<LogsArchive />} />} />
         
         {/* 5. OPERATOR PROFILE ROUTE */}
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
 
         {/* 404 Catch-all */}
         <Route path="*" element={

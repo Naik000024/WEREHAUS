@@ -1,29 +1,59 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../components/Layout';
 import { API_BASE_URL } from '../api';
 
 const Profile = () => {
   const [account, setAccount] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem('access_token');
+      if (!token) {
+        setErrorMsg("AUTHENTICATION_REQUIRED: No secure access key index found in local terminal storage. Redirecting...");
+        setTimeout(() => navigate('/login'), 2500);
+        return;
+      }
       try {
-        // Updated to use your local IP and the Djoser 'me' endpoint
         const response = await axios.get(`${API_BASE_URL}user/auth/users/me/`, {
           headers: {
-            // Djoser default uses 'Token', standard JWT uses 'Bearer'
             Authorization: `Bearer ${token}`
           }
         });
+        // Validate that we received user object rather than HTML string or other invalid data
+        if (typeof response.data !== 'object' || response.data === null || !('email' in response.data)) {
+          throw new Error("Invalid server payload structure. Backend returned non-JSON data.");
+        }
         setAccount(response.data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Session Expired or Unauthorized", error);
+        const detail = error.response?.data?.detail || error.message || "Unknown error";
+        setErrorMsg(`API_UPLINK_FAILURE: Failed to fetch profile from [${API_BASE_URL}user/auth/users/me/]. Details: ${detail}`);
+        if (error.response?.status === 401) {
+          localStorage.removeItem('access_token');
+          setTimeout(() => navigate('/login'), 3000);
+        }
       }
     };
     fetchProfile();
-  }, []);
+  }, [navigate]);
+
+  if (errorMsg) {
+    return (
+      <Layout title="Operator_Profile">
+        <div className="max-w-2xl mx-auto border border-neon-pink/40 bg-black/40 p-8 backdrop-blur-sm font-mono mt-10 shadow-[0_0_20px_rgba(255,0,85,0.1)] text-neon-pink">
+          <h2 className="text-xs mb-4 uppercase tracking-[0.2em] font-bold">[ SECURE_UPLINK_ERROR ]</h2>
+          <p className="text-[11px] leading-relaxed mb-4">{errorMsg}</p>
+          <div className="text-[9px] text-gray-500 uppercase tracking-widest animate-pulse">
+            ATTEMPTING_SYSTEM_RECOVERY...
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!account) return <div className="p-20 text-cyan-500 font-mono italic animate-pulse">DECRYPTING_OPERATOR_DATA...</div>;
 

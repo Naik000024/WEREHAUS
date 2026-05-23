@@ -1,9 +1,26 @@
 import axios from "axios";
 import { Product, Inventory, Order, OrderItem } from "./types";
 
-export const API_BASE_URL = process.env.REACT_APP_API_URL 
-    ? (process.env.REACT_APP_API_URL.endsWith('/') ? process.env.REACT_APP_API_URL : `${process.env.REACT_APP_API_URL}/`) 
-    : 'http://127.0.0.1:8000/';
+let resolvedBase = process.env.REACT_APP_API_URL || '';
+
+if (resolvedBase === 'undefined' || resolvedBase === 'null' || !resolvedBase.trim()) {
+    resolvedBase = '';
+}
+
+if (!resolvedBase && typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // Automatic matching of Render service suffixes
+    if (hostname.includes('warehouse-frontend')) {
+        const backendHost = hostname.replace('warehouse-frontend', 'warehouse-backend');
+        resolvedBase = `https://${backendHost}/`;
+    }
+}
+
+if (!resolvedBase) {
+    resolvedBase = 'http://127.0.0.1:8000/';
+}
+
+export const API_BASE_URL = resolvedBase.endsWith('/') ? resolvedBase : `${resolvedBase}/`;
 
 export const API = axios.create({ baseURL: `${API_BASE_URL}api/` });
 

@@ -3,10 +3,25 @@ import { getfulfillmentreport } from '../api';
 
 const AnalyticsCards: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     useEffect(() => {
-        getfulfillmentreport().then(setStats).catch(console.error);
+        getfulfillmentreport()
+            .then(setStats)
+            .catch(error => {
+                console.error("Analytics fetch fail", error);
+                setErrorMsg(`ANALYTICS_UPLINK_FAIL: ${error.message || "Failed to fetch from backend"}`);
+            });
     }, []);
+
+    if (errorMsg) {
+        return (
+            <div className="p-6 border border-neon-pink/30 bg-black/20 rounded-lg text-neon-pink font-mono text-[10px] tracking-tighter uppercase leading-relaxed shadow-[0_0_15px_rgba(255,0,85,0.05)]">
+                🚨 [ SYSTEM_ANALYTICS_FAILURE ]
+                <p className="mt-2 text-gray-500 normal-case font-bold">{errorMsg}</p>
+            </div>
+        );
+    }
 
     if (!stats) return <div className="text-neon-cyan animate-pulse font-mono text-xs">SCANNING_DATA...</div>;
 
