@@ -20,6 +20,10 @@ services:
     env: static
     buildCommand: cd warehouse_config/frontend && npm install && npm run build
     staticPublishPath: warehouse_config/frontend/build
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: REACT_APP_API_URL
         fromService:
