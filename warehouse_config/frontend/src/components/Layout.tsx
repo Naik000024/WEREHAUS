@@ -1,6 +1,7 @@
 import React, { ReactNode, useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../api';
 
 interface LayoutProps {
   children: ReactNode;
@@ -31,7 +32,7 @@ const ChatbotWidget: React.FC = () => {
 
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.post('http://127.0.0.1:8000/api/chatbot/', {
+      const response = await axios.post(`${API_BASE_URL}api/chatbot/`, {
         message: userText
       }, {
         headers: {

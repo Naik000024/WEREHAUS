@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal'; 
-import { getinventory, API } from '../api'; 
+import { getinventory, API, API_BASE_URL } from '../api'; 
 import { Inventory as InventoryType } from '../types'; 
 
 import axios from 'axios';
@@ -31,7 +31,7 @@ const Inventory: React.FC = () => {
         const token = localStorage.getItem('access_token');
         if (!token) return;
         try {
-            const response = await axios.get('http://127.0.0.1:8000/user/auth/users/me/', {
+            const response = await axios.get(`${API_BASE_URL}user/auth/users/me/`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

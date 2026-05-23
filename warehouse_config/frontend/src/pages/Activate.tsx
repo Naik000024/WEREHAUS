@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../api';
 
 const Activate = () => {
     const { uid, token } = useParams();
@@ -10,7 +11,7 @@ const Activate = () => {
         const activateAccount = async () => {
             try {
                 // Djoser activation endpoint
-                await axios.post('http://127.0.0.1:8000/user/auth/users/activation/', {
+                await axios.post(`${API_BASE_URL}user/auth/users/activation/`, {
                     uid,
                     token
                 });

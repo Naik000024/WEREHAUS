@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getorders, fulfillorder, API, getorderdetail } from '../api';
+import { getorders, fulfillorder, API, getorderdetail, API_BASE_URL } from '../api';
 import { Order } from '../types';
 import OrderStatusModal from './OrderStatusModal';
 import axios from 'axios';
@@ -20,7 +20,7 @@ const OrderManifest: React.FC<Props> = ({ onAction }) => {
         const token = localStorage.getItem('access_token');
         if (!token) return;
         try {
-            const response = await axios.get('http://127.0.0.1:8000/user/auth/users/me/', {
+            const response = await axios.get(`${API_BASE_URL}user/auth/users/me/`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

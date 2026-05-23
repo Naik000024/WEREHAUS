@@ -25,4 +25,4 @@ services:
         fromService:
           name: warehouse-backend
           type: web
-          property: host
+          property: url

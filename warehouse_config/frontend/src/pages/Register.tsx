@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../api';
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -19,7 +20,7 @@ const Register = () => {
 
         try {
             // Djoser registration endpoint
-            await axios.post('http://127.0.0.1:8000/user/auth/users/', {
+            await axios.post(`${API_BASE_URL}user/auth/users/`, {
                 username,
                 email,
                 password,

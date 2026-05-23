@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Layout from '../components/Layout';
+import { API_BASE_URL } from '../api';
 
 const Profile = () => {
   const [account, setAccount] = useState<any>(null);
@@ -10,7 +11,7 @@ const Profile = () => {
       const token = localStorage.getItem('access_token');
       try {
         // Updated to use your local IP and the Djoser 'me' endpoint
-        const response = await axios.get('http://127.0.0.1:8000/user/auth/users/me/', {
+        const response = await axios.get(`${API_BASE_URL}user/auth/users/me/`, {
           headers: {
             // Djoser default uses 'Token', standard JWT uses 'Bearer'
             Authorization: `Bearer ${token}`
@@ -33,7 +34,7 @@ const Profile = () => {
     const formData = new FormData();
     formData.append('profile_picture', file);
     try {
-      const response = await axios.patch('http://127.0.0.1:8000/user/auth/users/me/', formData, {
+      const response = await axios.patch(`${API_BASE_URL}user/auth/users/me/`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -50,7 +51,8 @@ const Profile = () => {
   const getAvatarUrl = (path: string) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    return `http://127.0.0.1:8000${path}`;
+    const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    return `${base}${path}`;
   };
 
   const displayValue = (val: any, fallback: string) => (val && val !== "" ? val : fallback);

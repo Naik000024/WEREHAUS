@@ -1,7 +1,11 @@
 import axios from "axios";
 import { Product, Inventory, Order, OrderItem } from "./types";
 
-export const API = axios.create({ baseURL: "http://127.0.0.1:8000/api/" });
+export const API_BASE_URL = process.env.REACT_APP_API_URL 
+    ? (process.env.REACT_APP_API_URL.endsWith('/') ? process.env.REACT_APP_API_URL : `${process.env.REACT_APP_API_URL}/`) 
+    : 'http://127.0.0.1:8000/';
+
+export const API = axios.create({ baseURL: `${API_BASE_URL}api/` });
 
 // --- AUTH INTERCEPTOR (REQUEST) ---
 API.interceptors.request.use((config) => {

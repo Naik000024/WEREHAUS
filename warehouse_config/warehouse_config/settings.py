@@ -106,6 +106,10 @@ CSRF_TRUSTED_ORIGINS = [
     "http://192.168.1.15:3000"  # Add this!
 ]
 
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+CSRF_TRUSTED_ORIGINS.append("https://*.onrender.com")
+
 # Custom User Model
 AUTH_USER_MODEL = 'user.Account'
 

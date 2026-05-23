@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../api';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -11,7 +12,7 @@ const Login = () => {
         e.preventDefault();
         try {
             // UPDATED ENDPOINT: Using the Djoser JWT creation path
-            const response = await axios.post('http://127.0.0.1:8000/user/auth/jwt/create/', {
+            const response = await axios.post(`${API_BASE_URL}user/auth/jwt/create/`, {
                 email,
                 password,
             });
