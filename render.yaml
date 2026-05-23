@@ -15,9 +15,8 @@ services:
         value: 4
 
   # Frontend Service (Static Site)
-  - type: web
+  - type: static
     name: warehouse-frontend
-    env: static
     buildCommand: cd warehouse_config/frontend && npm install && npm run build
     staticPublishPath: warehouse_config/frontend/build
     routes:
