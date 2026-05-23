@@ -130,15 +130,19 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Djoser Configuration (Updated to bypass Render SMTP blocks)
+# Djoser Configuration (Re-enabled with custom Activation URL)
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': False,
-    'SEND_ACTIVATION_EMAIL': False,
+    'SEND_ACTIVATION_EMAIL': True,
+    'ACTIVATION_URL': 'activate/{uid}/{token}',
     'SERIALIZERS': {
         'user_create': 'user.serializers.UserCreateSerializer',
         'user': 'user.serializers.UserSerializer',
         'current_user': 'user.serializers.UserSerializer',
+    },
+    'EMAIL': {
+        'activation': 'user.emails.CustomActivationEmail',
     }
 }
 
@@ -159,8 +163,9 @@ else:
 # Email / SMTP Settings (Gmail) – using real Gmail for activation
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'quezon.nyko16@gmail.com'
 EMAIL_HOST_PASSWORD = 'yqziwjylemtftuoo'
 DEFAULT_FROM_EMAIL = 'quezon.nyko16@gmail.com'

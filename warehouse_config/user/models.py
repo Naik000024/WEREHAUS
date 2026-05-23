@@ -8,9 +8,6 @@ class MyAccountManager(BaseUserManager):
         if not username:
             raise ValueError("Users must have a username")
 
-        # Automatically activate accounts by default to bypass email SMTP locks
-        extra_fields.setdefault('is_active', True)
-
         user = self.model(
             email=self.normalize_email(email),
             username=username,
