@@ -1,4 +1,5 @@
 from djoser import email
+from django.conf import settings
 
 class CustomActivationEmail(email.ActivationEmail):
     # We leave these here, but we will override them in the send method
@@ -8,8 +9,11 @@ class CustomActivationEmail(email.ActivationEmail):
 
     def get_context_data(self):
         context = super().get_context_data()
-        domain = context.get("domain")
-        protocol = context.get("protocol")
+        # Explicitly read from settings.DJOSER to bypass Djoser's request-domain override
+        djoser_settings = getattr(settings, 'DJOSER', {})
+        domain = djoser_settings.get('DOMAIN', 'warehouse-frontend-bxqn.onrender.com')
+        protocol = djoser_settings.get('PROTOCOL', 'https')
+        
         uid = context.get("uid")
         token = context.get("token")
         context["url"] = f"{protocol}://{domain}/activate/{uid}/{token}"
