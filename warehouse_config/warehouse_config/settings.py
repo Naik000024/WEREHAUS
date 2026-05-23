@@ -131,11 +131,21 @@ SIMPLE_JWT = {
 }
 
 # Djoser Configuration (Re-enabled with custom Activation URL)
+FRONTEND_DOMAIN = os.environ.get('FRONTEND_DOMAIN', 'warehouse-frontend-bxqn.onrender.com')
+if 'RENDER' in os.environ:
+    DJOSER_DOMAIN = FRONTEND_DOMAIN
+    DJOSER_PROTOCOL = 'https'
+else:
+    DJOSER_DOMAIN = 'localhost:3000'
+    DJOSER_PROTOCOL = 'http'
+
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': False,
     'SEND_ACTIVATION_EMAIL': True,
     'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'DOMAIN': DJOSER_DOMAIN,
+    'PROTOCOL': DJOSER_PROTOCOL,
     'SERIALIZERS': {
         'user_create': 'user.serializers.UserCreateSerializer',
         'user': 'user.serializers.UserSerializer',
