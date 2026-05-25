@@ -11,9 +11,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class InventorySerializer(serializers.ModelSerializer):
     product_name = serializers.ReadOnlyField(source='product.name')
+    product_sku = serializers.ReadOnlyField(source='product.sku')
+    product_price = serializers.ReadOnlyField(source='product.price')
     class Meta:
         model = Inventory
-        fields = ['id', 'product', 'product_name', 'quantity_available', 'last_updated']
+        fields = ['id', 'product', 'product_name', 'product_sku', 'product_price', 'quantity_available', 'last_updated']
         # THE FIX: Allows PATCH updates to quantity without sending product ID again
         extra_kwargs = {
             'product': {'read_only': True}
