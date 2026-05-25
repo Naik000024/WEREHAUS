@@ -2,8 +2,10 @@ import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Product, Inventory, Order, OrderItem } from "../types";
 
-// Base URL - Use your computer's local IP for testing
-const ROOT_URL = "http://192.168.1.15:8000/";
+const DEV_URL = "http://192.168.1.15:8000/";
+const PROD_URL = "https://warehouse-backend-bxqn.onrender.com/";
+
+const ROOT_URL = __DEV__ ? DEV_URL : PROD_URL;
 
 export const API = axios.create({ baseURL: ROOT_URL });
 

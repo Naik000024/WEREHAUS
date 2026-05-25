@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.werehaus.warehousemobile",
       "adaptiveIcon": {
         "backgroundColor": "#0d1117"
       },
