@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8f90837a-9eb0-4fc6-a86f-b681ee78a352"
+      }
+    },
+    "owner": "naiku"
   }
 }

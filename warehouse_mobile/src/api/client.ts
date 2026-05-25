@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Product, Inventory, Order, OrderItem } from "../types";
 
 const DEV_URL = "http://192.168.1.15:8000/";
-const PROD_URL = "https://warehouse-backend-bxqn.onrender.com/";
+const PROD_URL = "https://warehouse-backend-ship.onrender.com/";
 
 const ROOT_URL = __DEV__ ? DEV_URL : PROD_URL;
 
